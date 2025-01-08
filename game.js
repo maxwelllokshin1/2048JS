@@ -33,10 +33,6 @@ function draw()
     });
 }
 
-function checkCollsion()
-{
-}
-
 function addBlock()
 {
 
@@ -45,52 +41,103 @@ function addBlock()
         x: Math.floor(Math.random() * 4) * block.width,
         y: Math.floor(Math.random() * 4) * block.height,
         width: canvas.width/4,
-        height: canvas.height/4,
+        height: canvas.height/4,    
         value: Math.floor(Math.random()*2) ? 2 : 4
+    }
+
+    for(let element of arrayBlocks)
+    {
+        while(newBlock.x === element.x && newBlock.y === element.y)
+        {
+            newBlock.x =  Math.floor(Math.random() * 4) * block.width;
+            newBlock.y =  Math.floor(Math.random() * 4) * block.height;
+        }
     }
 
     arrayBlocks.push(newBlock);
 }
+
+function checkCollsion(currentBlock)
+{
+    for(let element of arrayBlocks)
+    {
+        if(currentBlock === element) continue;
+        if( currentBlock !== element && 
+            currentBlock.x < element.x+element.width && 
+            currentBlock.x+currentBlock.width > element.x &&
+            currentBlock.y < element.y+element.height && 
+            currentBlock.y+currentBlock.height > element.y && 
+            currentBlock.value !== element.value){
+            console.log('touch');
+            return true;
+        }
+
+        if( currentBlock !== element &&
+            currentBlock.x === element.x &&
+            currentBlock.y === element.y &&
+            currentBlock.value === element.value){
+                element.value += currentBlock.value;
+                arrayBlocks.splice(currentBlock, 1);
+                console.log('currentBlock.value' + element.value);
+        }
+    }
+    return false;
+}
+
+
+// project block check if collision
+// If collision stop at current
+
+
 
 document.addEventListener('keydown', (event) => {
     if (['w', 'a', 's', 'd'].includes(event.key)) {
         event.preventDefault(); 
 
         arrayBlocks.forEach(function (element) {
-            let curX = element.x;
-            let curY = element.y;
-            
+            let originalX = element.x;
+            let originalY = element.y;
             switch (event.key) {
                 case 'w':
-                    while (element.y > 0) {
-                        
+
+                    if (element.y > 0 && !checkCollsion(element)) {
                         element.y -= block.dy;
                     }
+                    
                     break;
                 case 'a':
-                    while (element.x > 0) {
+                    if (element.x > 0 && !checkCollsion(element)) {
                         element.x -= block.dx;
                     }
                     break;
                 case 's':
-                    while (element.y < canvas.height - block.height) {
+                    if (element.y < canvas.height - block.height && !checkCollsion(element)) {
+                
                         element.y += block.dy;
                     }
                     break;
                 case 'd':
-                    while (element.x < canvas.width - block.width) {
+                    if (element.x < canvas.width - block.width && !checkCollsion(element)) {
                         element.x += block.dx;
                     }
                     break;
             }
+
+            if (checkCollsion(element)) {
+                element.x = originalX;
+                element.y = originalY;
+            }
         });
+        addBlock();
+        console.log('arrayBlocks.length' + arrayBlocks.length);
     }
 });
 
 
 function startGame()
 {
-
+    addBlock();
+    addBlock();
     function loop()
     {
         gameLoop = requestAnimationFrame(loop);
@@ -105,6 +152,4 @@ function startGame()
     gameLoop = requestAnimationFrame(loop);
 }
 
-addBlock();
-addBlock();
 startGame();
