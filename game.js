@@ -18,6 +18,8 @@ let arrayBlocks = [];
 
 let gameLoop;
 
+let gameOver = false;
+
 function draw()
 {
     ctx.clearRect(0,0,canvas.width, canvas.height);
@@ -27,44 +29,27 @@ function draw()
     ctx.textBaseline = 'middle';
     arrayBlocks.forEach(function(element) {
         switch (element.value) {
-            case 2:
-                ctx.fillStyle = '#eee4da';
-                break;
-            case 4:
-                ctx.fillStyle = '#ede0c8';
-                break;
-            case 8:
-                ctx.fillStyle = '#f2b179';
-                break;
-            case 16:
-                ctx.fillStyle = '#f59563';
-                break;
-            case 32:
-                ctx.fillStyle = '#f67c5f';
-                break;
-            case 64:
-                ctx.fillStyle = '#f65e3b';
-                break;
-            case 128:
-                ctx.fillStyle = '#edcf72';
-                break;
-            case 256:
-                ctx.fillStyle = '#edcc61';
-                break;
-            case 512:
-                ctx.fillStyle = '#edc850';
-                break;
-            case 1024:
-                ctx.fillStyle = '#edc53f';
-                break;
-            case 2048:
-                ctx.fillStyle = '#edc22e';
-                break;
+            case 2: ctx.fillStyle = '#eee4da'; break;
+            case 4: ctx.fillStyle = '#ede0c8'; break;
+            case 8: ctx.fillStyle = '#f2b179'; break;
+            case 16: ctx.fillStyle = '#f59563'; break;
+            case 32: ctx.fillStyle = '#f67c5f'; break;
+            case 64: ctx.fillStyle = '#f65e3b'; break;
+            case 128: ctx.fillStyle = '#edcf72'; break;
+            case 256: ctx.fillStyle = '#edcc61'; break;
+            case 512: ctx.fillStyle = '#edc850'; break;
+            case 1024: ctx.fillStyle = '#edc53f'; break;
+            case 2048: ctx.fillStyle = '#edc22e'; break;
         }
         ctx.fillRect(element.x, element.y, element.width, element.height);
         ctx.fillStyle = 'black';
         ctx.fillText(element.value, element.x + element.width / 2, element.y + element.height / 2);
     });
+
+    if(gameOver)
+    {
+        ctx.fillText("Game Over", canvas.width / 2, canvas.height / 2);
+    }
 }
 
 function addBlock()
@@ -97,25 +82,25 @@ function moveBlock(direction){
         let originalY = element.y;
 
         switch (direction) {
-            case 'w':  // Move up
+            case 'w':  
                 while (element.y > 0 && !checkCollision(element, 'up', merged)) {
                     element.y -= block.dy;
                     move = true;
                 }
                 break;
-            case 'a':  // Move left
+            case 'a':  
                 while (element.x > 0 && !checkCollision(element, 'left', merged)) {
                     element.x -= block.dx;
                     move = true;
                 }
                 break;
-            case 's':  // Move down
+            case 's': 
                 while (element.y < canvas.height - block.height && !checkCollision(element, 'down', merged)) {
                     element.y += block.dy;
                     move = true;
                 }
                 break;
-            case 'd':  // Move right
+            case 'd':  
                 while (element.x < canvas.width - block.width && !checkCollision(element, 'right', merged)) {
                     element.x += block.dx;
                     move = true;
@@ -123,46 +108,35 @@ function moveBlock(direction){
                 break;
         }
 
-        // If the block moved, add a new block to the board
     });
     if(move)
     {
         addBlock();
+        if(isGameOver()){
+            gameOver = true;
+        }
     }
-    // addBlock();
 }
 
-// function checkCollision(currentBlock)
-// {
-//     for(let element of arrayBlocks)
-//     {
-//         if(currentBlock === element) continue;
-//         if( currentBlock !== element && 
-//             currentBlock.x < element.x+element.width && 
-//             currentBlock.x+currentBlock.width > element.x &&
-//             currentBlock.y < element.y+element.height && 
-//             currentBlock.y+currentBlock.height > element.y && 
-//             currentBlock.value !== element.value){
-//             console.log('touch');
-//             return true;
-//         }
+function isGameOver() {
+    if (arrayBlocks.length === 16) {
+        for (let i = 0; i < 4; i++) {
+            for (let j = 0; j < 4; j++) {
+                let block1 = arrayBlocks.find(b => b.x / block.width === i && b.y / block.height === j);
+                if (i < 3 && block1.value === arrayBlocks.find(b => b.x / block.width === i + 1 && b.y / block.height === j)?.value) return false;
+                if (j < 3 && block1.value === arrayBlocks.find(b => b.x / block.width === i && b.y / block.height === j + 1)?.value) return false;
+            }
+        }
+        return true;
+    }
+    return false;
+}
 
-//         if( currentBlock !== element &&
-//             currentBlock.x === element.x &&
-//             currentBlock.y === element.y &&
-//             currentBlock.value === element.value){
-//                 element.value += currentBlock.value;
-//                 console.log('currentBlock.value' + element.value);
-//         }
-//     }
-//     return false;
-// }
 
 function checkCollision(currentBlock, direction, merged) {
     for (let element of arrayBlocks) {
         if (currentBlock === element) continue;
 
-        // Check for possible merging or collisions in each direction
         switch (direction) {
             case 'up':
                 if (currentBlock.x === element.x && currentBlock.y - block.dy === element.y) {
@@ -209,54 +183,24 @@ function checkCollision(currentBlock, direction, merged) {
     return false;
 }
 
-
-// project block check if collision
-// If collision stop at current
-
-
-
 document.addEventListener('keydown', (event) => {
-    if (['w', 'a', 's', 'd'].includes(event.key)) {
+    if (['w', 'a', 's', 'd', ' '].includes(event.key)) {
         event.preventDefault(); 
         moveBlock(event.key);
-        // arrayBlocks.forEach(function (element) {
-        //     let originalX = element.x;
-        //     let originalY = element.y;
-        //     switch (event.key) {
-        //         case 'w':
 
-        //             if (element.y > 0 && !checkCollsion(element)) {
-        //                 element.y -= block.dy;
-        //             }
-                    
-        //             break;
-        //         case 'a':
-        //             if (element.x > 0 && !checkCollsion(element)) {
-        //                 element.x -= block.dx;
-        //             }
-        //             break;
-        //         case 's':
-        //             if (element.y < canvas.height - block.height && !checkCollsion(element)) {
-                
-        //                 element.y += block.dy;
-        //             }
-        //             break;
-        //         case 'd':
-        //             if (element.x < canvas.width - block.width && !checkCollsion(element)) {
-        //                 element.x += block.dx;
-        //             }
-        //             break;
-        //     }
-
-        //     if (checkCollsion(element)) {
-        //         element.x = originalX;
-        //         element.y = originalY;
-        //     }
-        // });
-        // addBlock();
-        console.log('arrayBlocks.length' + arrayBlocks.length);
+        if(gameOver){
+            if(event.key === ' ') resetGame();
+        }
     }
 });
+
+function resetGame()
+{   
+    cancelAnimationFrame(gameLoop);
+    arrayBlocks.length = 0;
+    gameOver = false;
+    startGame();
+}
 
 
 function startGame()
